@@ -40,12 +40,12 @@ public func createCorrectTaskManager() -> PTNet {
     let taskPool    = PTPlace(named: "taskPool")
     let processPool = PTPlace(named: "processPool")
     let inProgress  = PTPlace(named: "inProgress")
-
+    let assurance = PTPlace(named: "assurance") //ajout d'une nouvelle place qui assure le bon fonctionnement
     // Transitions
     let create      = PTTransition(
         named          : "create",
         preconditions  : [],
-        postconditions : [PTArc(place: taskPool)])
+        postconditions : [PTArc(place: taskPool), PTArc(place: assurance)])
     let spawn       = PTTransition(
         named          : "spawn",
         preconditions  : [],
@@ -56,15 +56,15 @@ public func createCorrectTaskManager() -> PTNet {
         postconditions : [])
     let exec       = PTTransition(
         named          : "exec",
-        preconditions  : [PTArc(place: taskPool), PTArc(place: processPool)],
+        preconditions  : [PTArc(place: taskPool), PTArc(place: processPool), PTArc(place: assurance)],
         postconditions : [PTArc(place: taskPool), PTArc(place: inProgress)])
     let fail        = PTTransition(
         named          : "fail",
         preconditions  : [PTArc(place: inProgress)],
-        postconditions : [])
+        postconditions : [PTArc(place: assurance)])
 
     // P/T-net
     return PTNet(
-        places: [taskPool, processPool, inProgress],
+        places: [taskPool, processPool, inProgress, assurance],
         transitions: [create, spawn, success, exec, fail])
 }
