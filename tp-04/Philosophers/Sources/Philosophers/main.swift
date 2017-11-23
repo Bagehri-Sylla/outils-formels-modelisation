@@ -44,9 +44,37 @@ do {
 print()
 
 do {
-    let philosophers = lockFreePhilosophers(n: 3)
-    // let philosophers = lockablePhilosophers(n: 3)
+    let philosophers = lockFreePhilosophers(n: 5)
+
     for m in philosophers.simulation(from: philosophers.initialMarking!).prefix(10) {
         print(m)
     }
+
+    let firstMarkingGraph = philosophers.markingGraph(from: philosophers.initialMarking!)
+    print("")
+    print("On retrouve dans ce cas" ,firstMarkingGraph!.count, "possibilités de marquages sans avoir de bloquage")
+    print("")
+    print("")
+    print("-----------------------------------------------------------------------------------------------------------")
+    print("")
+    print("")
+
+}
+
+do
+{
+  let philosophers = lockablePhilosophers(n: 5)
+  for m in philosophers.simulation(from: philosophers.initialMarking!).prefix(10)
+  {
+    print(m)
+  }
+
+  let secondMarkingGraph = philosophers.markingGraph(from: philosophers.initialMarking!)
+  print("")
+  print("On retrouve dans ce cas" ,secondMarkingGraph!.count, "possibilités de marquages avec bloquage")
+  print("")
+  print("")
+  print("-----------------------------------------------------------------------------------------------------------")
+  print("")
+  print("")
 }

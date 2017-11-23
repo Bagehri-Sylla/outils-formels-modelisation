@@ -13,7 +13,57 @@ extension PredicateNet {
         // You may use these methods to check if you've already visited a marking, or if the model
         // is unbounded.
 
-        return nil
+        //nous allons ici définir l'ensemble des transitions, une liste de transitions avec binding, et
+        // l'ensemble des marquages qui devront etre renvoye
+
+        let Trst = self.transitions
+        let preMkg = PredicateMarkingNode<T>(marking: marking, successors: [:])
+        var markOk = [preMkg]
+        var ilReste = [preMkg]
+        var bdg = [PredicateTransition<T>.Binding]()
+
+        //nous allons ici creer une boucle while, qui se répètera jusqu'a
+        // que le nombre de marquage à traiter sera nul
+        while(ilReste.last) != nil
+        {
+          let W = ilReste.popLast()
+          markOk.append(W!)
+          let marKourant = W!.marking
+
+          //ici on tire toutes les transitions qui sont bindées
+          for i in Trst{
+            bdg = i.fireableBingings(from: marKourant)
+
+            var nvlle_successor : PredicateBindingMap<T> = [:]
+
+            //ici nous alllons faire une itération sur tout les bindings existant, nous allons effectuer un tire
+            //de transitions, puis dans la première condition if on va borner le marquages
+            //et la seconde condition if nous prmet de vérifier qu'un marquage n'existe pas deux fois
+            for bind in bdg
+            {
+              if let tirage = i.fire(from: marKourant, with: bind)
+              {
+                let Wnew = PredicateMarkingNode<T>(marking: tirage, successors: [:])
+
+                if (markOk.contains(where: {PredicateNet.greater(Wnew.marking, $0.marking)}) == true)
+                {
+                  return nil
+                }
+
+                if (markOk.contains(where:{PredicateNet.equals($0.marking, Wnew.marking)}) == false)
+                {
+                  ilReste.append(Wnew)
+                  markOk.append(Wnew)
+
+                  nvlle_successor[bind] = Wnew
+                  W!.successors.updateValue(nvlle_successor, forKey: i)
+                }
+              }
+            }
+
+          }
+        }
+        return preMkg
     }
 
     // MARK: Internals
@@ -23,7 +73,7 @@ extension PredicateNet {
         for (place, tokens) in lhs {
             guard tokens.count == rhs[place]!.count else { return false }
             for t in tokens {
-                guard tokens.filter({ $0 == t }).count == rhs[place]!.filter({ $0 == t }).count
+                guard rhs[place]!.contains(t)
                     else {
                         return false
                 }
@@ -40,7 +90,7 @@ extension PredicateNet {
             guard tokens.count >= rhs[place]!.count else { return false }
             hasGreater = hasGreater || (tokens.count > rhs[place]!.count)
             for t in rhs[place]! {
-                guard tokens.filter({ $0 == t }).count >= rhs[place]!.filter({ $0 == t }).count
+                guard tokens.contains(t)
                     else {
                         return false
                 }
