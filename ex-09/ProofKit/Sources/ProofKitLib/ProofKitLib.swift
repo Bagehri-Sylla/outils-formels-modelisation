@@ -1,6 +1,4 @@
 infix operator =>: LogicalDisjunctionPrecedence
-infix operator |-: AssignmentPrecedence
-
 
 public protocol BooleanAlgebra {
 
@@ -183,111 +181,6 @@ extension Formula: CustomStringConvertible {
         case .implication(let a, let b):
             return "(\(a) → \(b))"
         }
-    }
-
-}
-
-public struct Judgment {
-
-    public let hypotheses : Set<Formula>
-    public let conclusions: Set<Formula>
-
-    public var isProvable: Bool {
-        print(self)
-        let Γ = self.hypotheses
-        let Δ = self.conclusions
-
-        for f in Γ {
-            switch f {
-            // Basic
-            case .proposition(_) where Δ.contains(f):
-                return true
-
-            // ¬l
-            case .negation(let a):
-                return Judgment(hypotheses: Γ - f, conclusions: Δ + a).isProvable
-
-            // ∨l
-            case .disjunction(let a, let b):
-                let lhs = Judgment(hypotheses: Γ - f + a, conclusions: Δ)
-                let rhs = Judgment(hypotheses: Γ - f + b, conclusions: Δ)
-                return lhs.isProvable && rhs.isProvable
-
-            // ∧l
-            case .conjunction(let a, let b):
-                return Judgment(hypotheses: Γ - f + a + b, conclusions: Δ).isProvable
-
-            // →l
-            case .implication(let a, let b):
-                let lhs = Judgment(hypotheses: Γ - f, conclusions: Δ + a)
-                let rhs = Judgment(hypotheses: Γ - f + b, conclusions: Δ)
-                return lhs.isProvable && rhs.isProvable
-
-            default:
-                break
-            }
-        }
-
-        for f in Δ {
-            switch f {
-            // Basic
-            case .proposition(_) where Γ.contains(f):
-                return true
-
-            // ¬r
-            case .negation(let a):
-                return Judgment(hypotheses: Γ + a, conclusions: Δ - f).isProvable
-
-            // ∨r
-            case .disjunction(let a, let b):
-                return Judgment(hypotheses: Γ, conclusions: Δ - f + a + b).isProvable
-
-            // ∧r
-            case .conjunction(let a, let b):
-                let lhs = Judgment(hypotheses: Γ, conclusions: Δ - f + a)
-                let rhs = Judgment(hypotheses: Γ, conclusions: Δ - f + b)
-                return lhs.isProvable && rhs.isProvable
-
-            // →r
-            case .implication(let a, let b):
-                return Judgment(hypotheses: Γ + a, conclusions: Δ - f + b).isProvable
-
-            default:
-                break
-            }
-        }
-
-        return false
-    }
-
-}
-
-extension Judgment: CustomStringConvertible {
-
-    public var description: String {
-        let Γ = self.hypotheses .map({ String(describing: $0) }).joined(separator: ",")
-        let Δ = self.conclusions.map({ String(describing: $0) }).joined(separator: ",")
-        return "\(Γ) ⊢ \(Δ)"
-    }
-
-}
-
-extension Set where Element == Formula {
-
-    public static func +(set: Set, formula: Formula) -> Set {
-        return set.union([formula])
-    }
-
-    public static func -(set: Set, formula: Formula) -> Set {
-        return set.filter({ $0 != formula })
-    }
-
-}
-
-extension Formula {
-
-    public static func |-(hypotheses: Formula, conclusions: Formula) -> Judgment {
-        return Judgment(hypotheses: [hypotheses], conclusions: [conclusions])
     }
 
 }
