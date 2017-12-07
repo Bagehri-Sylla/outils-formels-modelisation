@@ -73,12 +73,74 @@ public enum Formula {
     /// The disjunctive normal form of the formula.
     public var dnf: Formula {
         // Write your code here ...
+        let formul = self.nnf //avant de trouver la forme dnf de la formule, on doit d'abord
+                              //transformer celle-ci en nnf (etape 1 dans le cours)
+
+        switch formul
+        {
+        case .proposition(_): //la proposition ne doit pas changer, elle reste elle même
+          return self
+
+        case .disjunction(let a, let b): //la disjonction ne doit pas changer, elle reste elle même
+          return a.dnf || b.dnf
+
+        case .conjunction(let c, let d): //si on a une conjonction, alors on utlise la regle de distribution pour
+                                         // avoir les conjonction("ET") à l'intérieur, et les disjonction("OU") à l'exterieur (etape 3 dans le cours)
+          switch c.dnf
+          {
+          case .disjunction(let e, let f):
+            return (e.dnf && d.dnf).dnf || (f.dnf && d.dnf).dnf
+
+          default: break
+          }
+
+          switch d.dnf
+          {
+          case .disjunction(let g, let h):
+            return (g.dnf && c.dnf).dnf || (h.dnf && c.dnf).dnf
+
+          default: break
+          }
+
+        default: break
+        }
         return self
     }
 
     /// The conjunctive normal form of the formula.
     public var cnf: Formula {
         // Write your code here ...
+        let formul = self.nnf //avant de trouver la forme cnf de la formule, on doit d'abord
+                              //transformer celle-ci en nnf (etape 1 dans le cours)
+
+        switch formul
+        {
+        case .proposition(_): //la proposition ne doit pas changer, elle reste elle même
+          return self
+
+        case .conjunction(let a, let b): //la conjonction ne doit pas changer, elle reste elle même
+          return a.cnf && b.cnf
+
+        case .disjunction(let c, let d): //si on a une disjonction, alors on utlise la regle de distribution pour
+                                         // avoir les disjonction("OU") à l'intérieur, et les conjonction("ET") à l'exterieur (etape 3 dans le cours)
+          switch c.cnf
+          {
+          case .conjunction(let e, let f):
+            return (e.cnf || d.cnf).cnf && (f.cnf || d.cnf).cnf
+
+          default: break
+          }
+
+          switch d.cnf
+          {
+          case .conjunction(let g, let h):
+            return (g.cnf || c.cnf).cnf && (h.cnf || c.cnf).cnf
+
+          default: break
+          }
+
+        default: break
+        }
         return self
     }
 
